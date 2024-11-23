@@ -91,7 +91,7 @@ jobs:
             VERSION=${{ steps.meta.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          outputs: type=docker,dest=/tmp/$(echo $DIRECTORY | sed 's/^\\.\\/distribution\\///').tar
+          outputs: type=docker,dest=/tmp/image.tar
 
       - name: Create scan directory
         run: mkdir -p scan-results
@@ -99,7 +99,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          input: /tmp/$(echo $DIRECTORY | sed 's/^\\.\\/distribution\\///').tar
+          input: /tmp/image.tar
           format: "sarif"
           output: "scan-results/trivy-results${{ env.DOCKERFILE_NAME }}-$(echo $DIRECTORY | sed 's/^\\.\\/distribution\\///').sarif"
 
