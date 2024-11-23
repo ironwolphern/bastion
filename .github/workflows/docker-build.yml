@@ -26,7 +26,7 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
       security-events: write
     strategy:
@@ -41,7 +41,9 @@ jobs:
           DOCKERFILE_PATH="${{ matrix.dockerfile }}"
           DIRECTORY=$(dirname "$DOCKERFILE_PATH")
           IMAGE_NAME="${{ github.repository }}$(echo $DIRECTORY | sed 's/^\.//')"
+          DOCKERFILE_NAME=$(basename "$DOCKERFILE_PATH" | sed 's/Dockerfile//')
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          echo "DOCKERFILE_NAME=$DOCKERFILE_NAME" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -83,14 +85,17 @@ jobs:
           cache-to: type=gha,mode=max
           outputs: type=docker,dest=/tmp/image.tar
 
+      - name: Create scan directory
+        run: mkdir -p scan-results
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
           input: /tmp/image.tar
           format: 'sarif'
-          output: 'trivy-results-${{ matrix.dockerfile }}.sarif'
+          output: 'scan-results/trivy-results${{ env.DOCKERFILE_NAME }}.sarif'
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'trivy-results-${{ matrix.dockerfile }}.sarif'
+          sarif_file: 'scan-results/trivy-results${{ env.DOCKERFILE_NAME }}.sarif'
