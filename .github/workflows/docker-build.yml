@@ -49,7 +49,7 @@ jobs:
           DOCKERFILE_PATH="${{ matrix.dockerfile }}"
           DIRECTORY=$(dirname "$DOCKERFILE_PATH")
           IMAGE_NAME="${{ github.repository }}-$(echo $DIRECTORY | sed 's/^\.\/distribution\///')"
-          DOCKERFILE_NAME=$(basename "$DOCKERFILE_PATH"')
+          DOCKERFILE_NAME=$(basename "$DOCKERFILE_PATH")
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "DOCKERFILE_NAME=$DOCKERFILE_NAME" >> $GITHUB_ENV
 
@@ -100,10 +100,10 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           input: /tmp/$IMAGE_NAME.tar
-          format: 'sarif'
-          output: 'scan-results/trivy-results${{ env.DOCKERFILE_NAME }}.sarif'
+          format: "sarif"
+          output: "scan-results/trivy-results${{ env.DOCKERFILE_NAME }}-$(echo $DIRECTORY | sed 's/^\\.\\/distribution\\///').sarif"
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'scan-results/trivy-results${{ env.DOCKERFILE_NAME }}.sarif'
+          sarif_file: "scan-results/trivy-results${{ env.DOCKERFILE_NAME }}-$(echo $DIRECTORY | sed 's/^\\.\\/distribution\\///').sarif"
