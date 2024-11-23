@@ -2,8 +2,8 @@
 # syntax = docker/dockerfile:1.4
 
 # Global arguments for build time
-ARG TERRAFORM_VERSION
-ARG OC_VERSION
+ARG TERRAFORM_VERSION=1.9.8
+ARG OC_VERSION=4.17.5
 
 # Use Red Hat UBI9 minimal as base
 FROM registry.access.redhat.com/ubi9-minimal:latest
@@ -37,7 +37,7 @@ RUN microdnf update -y \
     && microdnf clean all
 
 # Tools installation
-COPY requirements.txt .
+COPY ../../requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
     && wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
     && unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/ \
@@ -56,8 +56,8 @@ RUN groupadd -g ${UID} ${USER} \
     && chown -R ${USER}:${USER} /home/${USER}
 
 # Copy configuration files
-COPY --chown=${USER}:${USER} ansible.cfg /home/${USER}/.ansible/ansible.cfg
-COPY --chown=${USER}:${USER} ssh_config /home/${USER}/.ssh/config
+COPY --chown=${USER}:${USER} ../../ansible.cfg /home/${USER}/.ansible/ansible.cfg
+COPY --chown=${USER}:${USER} ../../ssh_config /home/${USER}/.ssh/config
 
 # Switch to non-privileged user
 USER ${USER}

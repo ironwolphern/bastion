@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Images
 
 on:
   push:
@@ -9,19 +9,41 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      dockerfiles: ${{ steps.set-dockerfiles.outputs.dockerfiles }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set-dockerfiles
+        run: |
+          DOCKERFILES=$(find . -name "Dockerfile" | jq -R -s -c 'split("\n")[:-1]')
+          echo "dockerfiles=$DOCKERFILES" >> $GITHUB_OUTPUT
+
   build:
+    needs: prepare
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
       security-events: write
+    strategy:
+      matrix:
+        dockerfile: ${{ fromJson(needs.prepare.outputs.dockerfiles) }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Set image name
+        run: |
+          DOCKERFILE_PATH="${{ matrix.dockerfile }}"
+          DIRECTORY=$(dirname "$DOCKERFILE_PATH")
+          IMAGE_NAME="${{ github.repository }}$(echo $DIRECTORY | sed 's/^\.//')"
+          DOCKERFILE_NAME=$(basename "$DOCKERFILE_PATH" | sed 's/Dockerfile//')
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          echo "DOCKERFILE_NAME=$DOCKERFILE_NAME" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -50,7 +72,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ github.workspace }}
+          file: ${{ matrix.dockerfile }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -62,14 +85,17 @@ jobs:
           cache-to: type=gha,mode=max
           outputs: type=docker,dest=/tmp/image.tar
 
+      - name: Create scan directory
+        run: mkdir -p scan-results
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
           input: /tmp/image.tar
           format: 'sarif'
-          output: 'trivy-results.sarif'
+          output: 'scan-results/trivy-results${{ env.DOCKERFILE_NAME }}.sarif'
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: 'scan-results/trivy-results${{ env.DOCKERFILE_NAME }}.sarif'
