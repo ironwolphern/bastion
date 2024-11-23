@@ -37,7 +37,7 @@ RUN microdnf update -y \
     && microdnf clean all
 
 # Tools installation
-COPY requirements.txt .
+COPY ../../requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
     && wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
     && unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/ \
@@ -56,8 +56,8 @@ RUN groupadd -g ${UID} ${USER} \
     && chown -R ${USER}:${USER} /home/${USER}
 
 # Copy configuration files
-COPY --chown=${USER}:${USER} ansible.cfg /home/${USER}/.ansible/ansible.cfg
-COPY --chown=${USER}:${USER} ssh_config /home/${USER}/.ssh/config
+COPY --chown=${USER}:${USER} ../../ansible.cfg /home/${USER}/.ansible/ansible.cfg
+COPY --chown=${USER}:${USER} ../../ssh_config /home/${USER}/.ssh/config
 
 # Switch to non-privileged user
 USER ${USER}

@@ -1,5 +1,0 @@
-ansible==10.6.0
-ansible-lint==24.9.2
-netaddr>=0.8.0
-hvac>=2.3.0
-proxmoxer>=2.1.0
