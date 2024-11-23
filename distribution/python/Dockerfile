@@ -3,8 +3,8 @@
 
 # Global arguments for build time
 ARG PYTHON_VERSION=3.13.0-slim
-ARG TERRAFORM_VERSION
-ARG OC_VERSION
+ARG TERRAFORM_VERSION=1.9.8
+ARG OC_VERSION=4.17.5
 
 # Official Python base image
 FROM python:${PYTHON_VERSION}

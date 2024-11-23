@@ -2,8 +2,8 @@
 # syntax = docker/dockerfile:1.4
 
 # Global arguments for build time
-ARG TERRAFORM_VERSION
-ARG OC_VERSION
+ARG TERRAFORM_VERSION=1.9.8
+ARG OC_VERSION=4.17.5
 
 # Use Red Hat UBI9 minimal as base
 FROM registry.access.redhat.com/ubi9-minimal:latest
