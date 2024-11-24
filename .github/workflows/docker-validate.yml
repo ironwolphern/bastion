@@ -26,6 +26,9 @@ jobs:
         with:
           files: distribution/*/Dockerfile
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Set matrix
         id: set-matrix
         run: |
