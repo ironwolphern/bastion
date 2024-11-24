@@ -8,6 +8,7 @@ ARG OC_VERSION
 ARG GITHUB_SHA
 ARG GITHUB_REF
 ARG GITHUB_REPOSITORY
+ARG GITHUB_ACTOR
 
 # Official Python base image
 FROM python:${PYTHON_VERSION}-slim
@@ -19,16 +20,16 @@ ARG USER=devops
 # Labels following OCI
 LABEL org.opencontainers.image.revision="${GITHUB_SHA}" \
       org.opencontainers.image.version="${GITHUB_REF}" \
-      org.opencontainers.image.authors="ironwolphern" \
+      org.opencontainers.image.authors="${GITHUB_ACTOR}" \
       org.opencontainers.image.description="DevOps Tools Container" \
-      org.opencontainers.image.source="https://github.com/ironwolphern/bastion" \
+      org.opencontainers.image.source="${GITHUB_REPOSITORY}" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.ref.name="${GITHUB_REF}" \
       org.opencontainers.image.vendor="GitHub"
 
 # System dependencies installation
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl unzip git openssh-client sshpass ca-certificates vim jq sudo \
+    curl=7.* unzip=6.* git=1:2.* sshpass=1.* vim=2:9.* jq=1.* sudo=1.* \
     && rm -rf /var/lib/apt/lists/*
 
 # Tools installation

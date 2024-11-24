@@ -7,6 +7,7 @@ ARG OC_VERSION
 ARG GITHUB_SHA
 ARG GITHUB_REF
 ARG GITHUB_REPOSITORY
+ARG GITHUB_ACTOR
 
 # Use Ubuntu Noble as base image
 FROM ubuntu:noble
@@ -18,9 +19,9 @@ ARG USER=devops
 # Labels following OCI
 LABEL org.opencontainers.image.revision="${GITHUB_SHA}" \
       org.opencontainers.image.version="${GITHUB_REF}" \
-      org.opencontainers.image.authors="ironwolphern" \
+      org.opencontainers.image.authors="${GITHUB_ACTOR}" \
       org.opencontainers.image.description="DevOps Tools Container" \
-      org.opencontainers.image.source="https://github.com/ironwolphern/bastion" \
+      org.opencontainers.image.source="${GITHUB_REPOSITORY}" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.ref.name="${GITHUB_REF}" \
       org.opencontainers.image.vendor="GitHub"
@@ -31,11 +32,10 @@ ENV TZ=Europe/Madrid
 
 # System dependencies and Python installation
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common curl unzip git openssh-client sshpass ca-certificates vim jq sudo \
+    software-properties-common=0.* curl=8.* unzip=6.* git=1:2.* openssh-client=1:9.* sshpass=1.* ca-certificates=20240203 vim=2:9.* jq=1.* sudo=1.* \
     && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update \
-    && apt-get install -y --no-install-recommends python3.13 python3-pip \
-    && ln -sf /usr/bin/python3.13 /usr/bin/python3 \
+    && apt-get install -y --no-install-recommends python3.12=3.12.* python3-pip=24.* \
     && ln -sf /usr/bin/python3 /usr/bin/python \
     && rm -rf /var/lib/apt/lists/*
 
