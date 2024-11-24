@@ -2,14 +2,10 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches:
-      - 'main'
-      - '!develop'
-    tags:
-      - v*
+    branches: [ 'main', '!develop' ]
+    tags: [ v* ]
   pull_request:
-    branches:
-      - 'main'
+    branches: [ 'main' ]
 
 env:
   REGISTRY: ghcr.io
@@ -52,6 +48,7 @@ jobs:
           DOCKERFILE_NAME=$(basename "$DOCKERFILE_PATH")
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
           echo "DOCKERFILE_NAME=$DOCKERFILE_NAME" >> $GITHUB_ENV
+          export $(cat .env | xargs) >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -64,18 +61,24 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          labels: |
+            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+            org.opencontainers.image.description="DevOps Tools Container"
+            org.opencontainers.image.source="https://github.com/ironwolphern/bastion"
+            org.opencontainers.image.licenses=MIT
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
-            type=sha
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}
+            type=sha,prefix=
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -85,10 +88,16 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
           build-args: |
+            PYTHON_VERSION=$PYTHON_VERSION
+            TERRAFORM_VERSION=$TERRAFORM_VERSION
+            OC_VERSION=$OC_VERSION
             BUILD_DATE=$(TZ=Europe/Madrid date)
-            VCS_REF=${{ github.sha }}
             VERSION=${{ steps.meta.outputs.version }}
+            GITHUB_SHA=${{ github.sha }}
+            GITHUB_REF=${{ github.ref }}
+            GITHUB_REPOSITORY=${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           outputs: type=docker,dest=/tmp/image.tar
