@@ -15,19 +15,15 @@ FROM ubuntu:noble
 ARG UID=10001
 ARG USER=devops
 
-# Arguments to build time
-ARG BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-
 # Labels following OCI
-LABEL org.opencontainers.image.created="${BUILD_DATE}"
-LABEL org.opencontainers.image.revision="${GITHUB_SHA}"
-LABEL org.opencontainers.image.version="${GITHUB_REF}"
-LABEL org.opencontainers.image.authors="ironwolphern"
-LABEL org.opencontainers.image.description="DevOps Tools Container"
-LABEL org.opencontainers.image.source="https://github.com/ironwolphern/bastion"
-LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.ref.name="${GITHUB_REF}"
-LABEL org.opencontainers.image.vendor="GitHub"
+LABEL org.opencontainers.image.revision="${GITHUB_SHA}" \
+      org.opencontainers.image.version="${GITHUB_REF}" \
+      org.opencontainers.image.authors="ironwolphern" \
+      org.opencontainers.image.description="DevOps Tools Container" \
+      org.opencontainers.image.source="https://github.com/ironwolphern/bastion" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.ref.name="${GITHUB_REF}" \
+      org.opencontainers.image.vendor="GitHub"
 
 # Environment variables
 ENV DEBIAN_FRONTEND=noninteractive
