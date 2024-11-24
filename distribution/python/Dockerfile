@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Tools installation
 COPY ../../requirements.txt "${HOME}"
-RUN pip install --no-cache-dir -r "requirements.txt" \
+RUN pip install --no-cache-dir -r "./requirements.txt" \
     && curl -LO https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
     && unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/ \
     && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
