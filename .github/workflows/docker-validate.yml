@@ -76,7 +76,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Run Dive analysis
-        uses: MaxymVlasov/dive-action@@v1.0.1
+        uses: MaxymVlasov/dive-action@main
         with:
           image: ${{ steps.distribution.outputs.name }}:test
           config: ${{ github.workspace }}/.dive-ci.yml
