@@ -5,6 +5,7 @@ on:
     paths:
       - 'distribution/*/Dockerfile'
       - '.github/workflows/docker-validate.yml'
+
   pull_request:
     paths:
       - 'distribution/*/Dockerfile'
@@ -75,7 +76,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Run Dive analysis
-        uses: yuichielectric/dive-action@v0.0.4
+        uses: yuichielectric/dive-action@main
         with:
           image: ${{ steps.distribution.outputs.name }}:test
           config: .dive-ci.yml
