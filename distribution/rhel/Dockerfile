@@ -36,11 +36,11 @@ RUN microdnf update -y \
     && microdnf clean all
 
 # Tools installation
-COPY ../../requirements.txt "${HOME}"
-RUN pip install --no-cache-dir -r "requirements.txt" \
-    && curl -LO https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
-    && unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/ \
-    && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
+COPY ../../requirements.txt /tmp/
+RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+    && curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
+    && unzip "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -d /usr/local/bin/ \
+    && rm "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
     && curl -LO "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OC_VERSION}/openshift-client-linux.tar.gz" \
     && tar xzf openshift-client-linux.tar.gz -C /usr/local/bin \
     && rm openshift-client-linux.tar.gz \
