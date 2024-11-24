@@ -9,7 +9,7 @@ ARG GITHUB_REF
 ARG GITHUB_REPOSITORY
 
 # Use Red Hat UBI9 minimal as base
-FROM registry.access.redhat.com/ubi9-minimal:latest
+FROM registry.access.redhat.com/ubi9-minimal:9.5
 
 # Set arguments for non-privileged user
 ARG UID=10001
@@ -27,28 +27,29 @@ LABEL org.opencontainers.image.revision="${GITHUB_SHA}" \
 
 # System dependencies installation
 RUN microdnf update -y \
-    && microdnf install -y wget tar unzip git openssh-clients sshpass ca-certificates vim jq sudo python3.12 python3.12-pip \
+    && microdnf install -y tar unzip git openssh-clients sshpass ca-certificates vim jq sudo python3.12 python3.12-pip \
     && ln -sf /usr/bin/python3.12 /usr/bin/python3 \
     && ln -sf /usr/bin/python3 /usr/bin/python \
     && ln -sf /usr/bin/pip3.12 /usr/bin/pip3 \
-    && ln -sf /usr/bin/pip3 /usr/bin/pip
+    && ln -sf /usr/bin/pip3 /usr/bin/pip \
+    && microdnf clean all
 
 # Tools installation
-COPY ../../requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    && wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
+COPY ../../requirements.txt "${HOME}"
+RUN pip install --no-cache-dir -r "requirements.txt" \
+    && curl -LO https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
     && unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/ \
     && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
     && curl -LO "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OC_VERSION}/openshift-client-linux.tar.gz" \
     && tar xzf openshift-client-linux.tar.gz -C /usr/local/bin \
     && rm openshift-client-linux.tar.gz \
     && rm -Rf /usr/local/bin/README.md \
-    && microdnf remove -y wget tar unzip \
+    && microdnf remove -y tar unzip \
     && microdnf clean all
 
 # Create non-privileged user
 RUN groupadd -g ${UID} ${USER} \
-    && useradd -u ${UID} -g ${USER} -m -s /bin/bash ${USER} \
+    && useradd -u ${UID} -g ${USER} -lms /bin/bash ${USER} \
     && echo "${USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USER} \
     && chmod 0440 /etc/sudoers.d/${USER} \
     && mkdir -p /home/${USER}/.ansible /home/${USER}/.ssh /home/${USER}/.kube /home/${USER}/.terraform.d \

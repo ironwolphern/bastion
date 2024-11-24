@@ -31,7 +31,7 @@ ENV TZ=Europe/Madrid
 
 # System dependencies and Python installation
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common curl wget unzip git openssh-client sshpass ca-certificates vim jq sudo \
+    software-properties-common curl unzip git openssh-client sshpass ca-certificates vim jq sudo \
     && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update \
     && apt-get install -y --no-install-recommends python3.13 python3-pip \
@@ -40,24 +40,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Tools installation
-COPY ../../requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    && wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
+COPY ../../requirements.txt "${HOME}"
+RUN pip install --no-cache-dir -r "requirements.txt" \
+    && curl -LO https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
     && unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/ \
     && rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
     && curl -LO "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OC_VERSION}/openshift-client-linux.tar.gz" \
     && tar xzf openshift-client-linux.tar.gz -C /usr/local/bin \
     && rm openshift-client-linux.tar.gz \
     && rm -Rf /usr/local/bin/README.md \
-    && apt-get remove -y --purge wget unzip \
+    && apt-get remove -y --purge unzip \
     && apt-get autoremove -y && apt-get clean -y
 
 # Create non-privileged user
 RUN groupadd -g ${UID} ${USER} \
-    && useradd -u ${UID} -g ${USER} -m -s /bin/bash ${USER} \
+    && useradd -u ${UID} -g ${USER} -lms /bin/bash ${USER} \
     && echo "${USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USER} \
     && chmod 0440 /etc/sudoers.d/${USER} \
-    && mkdir -p /home/${USER}/.ansible /home/${USER}/.ssh \
+    && mkdir -p /home/${USER}/.ansible /home/${USER}/.ssh /home/${USER}/.kube /home/${USER}/.terraform.d \
     && chown -R ${USER}:${USER} /home/${USER}
 
 # Copy configuration files
