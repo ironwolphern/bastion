@@ -76,10 +76,10 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Run Dive analysis
-        uses: yuichielectric/dive-action@main
+        uses: MaxymVlasov/dive-action@@v1.0.1
         with:
           image: ${{ steps.distribution.outputs.name }}:test
-          config: .dive-ci.yml
+          config: ${{ github.workspace }}/.dive-ci.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Dockle security check
