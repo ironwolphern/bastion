@@ -72,11 +72,11 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/$IMAGE_NAME
           labels: |
-            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+            org.opencontainers.image.title=$IMAGE_NAME
             org.opencontainers.image.description="DevOps Tools Container"
-            org.opencontainers.image.source="https://github.com/ironwolphern/bastion"
+            org.opencontainers.image.source="https://github.com/${{ github.repository }}"
             org.opencontainers.image.licenses=MIT
           tags: |
             type=ref,event=branch
@@ -115,9 +115,9 @@ jobs:
         with:
           input: /tmp/image.tar
           format: "sarif"
-          output: "scan-results/trivy-results${{ env.DOCKERFILE_NAME }}.sarif"
+          output: "scan-results/trivy-results-$(basename $DIRECTORY).sarif"
 
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: "scan-results/trivy-results${{ env.DOCKERFILE_NAME }}.sarif"
+          sarif_file: "scan-results/trivy-results-$(basename $DIRECTORY).sarif"

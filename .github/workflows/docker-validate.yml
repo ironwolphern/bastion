@@ -4,12 +4,6 @@ on:
   push:
     paths:
       - 'distribution/*/Dockerfile'
-      - '.github/workflows/docker-validate.yml'
-
-  pull_request:
-    paths:
-      - 'distribution/*/Dockerfile'
-      - '.github/workflows/docker-validate.yml'
 
 jobs:
   detect-changes:
@@ -37,10 +31,8 @@ jobs:
       - name: Set matrix
         id: set-matrix
         run: |
-          DIRS=$(echo '${{ steps.changed-files.outputs.all_changed_files }}' | \
-                  xargs -I {} dirname {} | \
-                  sort -u | \
-                  jq -R -s -c 'split("\n")[:-1]')
+          DIRS=$(echo '["'$(echo ${{ steps.changed-files.outputs.all_changed_files }} | \
+                sed 's/ /","/g')'"]' | sed 's/\/Dockerfile//g')
           echo "matrix=${DIRS}" >> $GITHUB_OUTPUT
 
   validate:
@@ -69,31 +61,50 @@ jobs:
       - name: Run Hadolint
         run: hadolint ${{ matrix.distribution }}/Dockerfile
 
+      - name: Set image name
+        run: |
+          IMAGE_NAME="${{ github.repository }}-$(basename ${{ matrix.distribution }})"
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          export $(cat .env | xargs) >> $GITHUB_ENV
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build image for analysis
         uses: docker/build-push-action@v6
         with:
-          context: ${{ matrix.distribution }}
+          context: ${{ github.workspace }}
           file: ${{ matrix.distribution }}/Dockerfile
           push: false
           load: true
-          tags: ${{ steps.distribution.outputs.name }}:test
+          tags: $IMAGE_NAME:test
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            PYTHON_VERSION=$PYTHON_VERSION
+            TERRAFORM_VERSION=$TERRAFORM_VERSION
+            OC_VERSION=$OC_VERSION
+            BUILD_DATE=$(TZ=Europe/Madrid date)
+            VERSION="test"
+            GITHUB_SHA=${{ github.sha }}
+            GITHUB_REF=${{ github.ref }}
+            GITHUB_REPOSITORY=${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Run Dive analysis
         uses: MaxymVlasov/dive-action@main
         with:
-          image: ${{ steps.distribution.outputs.name }}:test
-          config: ${{ github.workspace }}/.dive-ci.yml
+          image: $IMAGE_NAME:test
+          config-file: ${{ github.workspace }}/.dive-ci.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Dockle security check
         uses: goodwithtech/dockle-action@main
         with:
-          image: ${{ steps.distribution.outputs.name }}:test
+          image: $IMAGE_NAME:test
           format: 'list'
           exit-code: '1'
           exit-level: 'warn'
