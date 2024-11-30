@@ -72,6 +72,9 @@ jobs:
           if [ "${{ needs.validate.result }}" = "success" ]; then
             echo "✅ All distribution validations passed successfully"
             exit 0
+          elif [ "${{ needs.validate.result }}" = "skipped" ]; then
+            echo "⚠️ No distribution validations were run"
+            exit 0
           else
             echo "❌ Some distribution validations failed"
             exit 1
