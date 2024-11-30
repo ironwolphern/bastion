@@ -1,0 +1,78 @@
+name: Docker Images Validation
+
+on:
+  push:
+    branches: [ "develop" ]
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      distributions: ${{ steps.set-distro.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Get changed files in the distribution folder
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@main
+        with:
+          files: distribution/*/Dockerfile
+
+      # Set distributions as a matrix
+      - name: Set distributions
+        id: set-distro
+        run: |
+          DISTRO=$(echo '["'$(echo ${{ steps.changed-files.outputs.all_changed_files }} | \
+                sed 's/ /","/g')'"]' | sed 's/\/Dockerfile//g')
+          echo "matrix=${DISTRO}" >> $GITHUB_OUTPUT
+
+  validate:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.distributions != '[]' && needs.detect-changes.outputs.distributions != '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro: ${{ fromJson(needs.detect-changes.outputs.distributions) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Get distribution name from the matrix and set it as an environment variable
+      - name: Get distribution name
+        id: distribution
+        run: echo "name=$(basename ${{ matrix.distro }})" >> $GITHUB_OUTPUT
+
+      # Install Hadolint
+      - name: Install Hadolint
+        run: |
+          wget -q https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          sudo mv hadolint-Linux-x86_64 /usr/local/bin/hadolint
+          sudo chmod +x /usr/local/bin/hadolint
+
+      - name: Run Hadolint
+        run: hadolint ${{ matrix.distro }}/Dockerfile
+
+  summary:
+    needs: validate
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check validation status
+        run: |
+          if [ "${{ needs.validate.result }}" = "success" ]; then
+            echo "✅ All distribution validations passed successfully"
+            exit 0
+          else
+            echo "❌ Some distribution validations failed"
+            exit 1
+          fi
