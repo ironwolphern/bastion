@@ -1,0 +1,111 @@
+name: Docker Images optimizations
+
+on:
+  push:
+    branches: [ "develop" ]
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      distributions: ${{ steps.set-distro.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Get changed files in the distribution folder
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@main
+        with:
+          files: distribution/*/Dockerfile
+
+      # Set distributions as a matrix
+      - name: Set distributions
+        id: set-distro
+        run: |
+          DISTRO=$(echo '["'$(echo ${{ steps.changed-files.outputs.all_changed_files }} | \
+                sed 's/ /","/g')'"]' | sed 's/\/Dockerfile//g')
+          echo "matrix=${DISTRO}" >> $GITHUB_OUTPUT
+
+  optimize:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.distributions != '[""]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro: ${{ fromJson(needs.detect-changes.outputs.distributions) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Get distribution name from the matrix and set it as an environment variable
+      - name: Get distribution name
+        id: distribution
+        run: echo "name=$(basename ${{ matrix.distro }})" >> $GITHUB_OUTPUT
+
+      - name: Set image name
+        run: |
+          IMAGE_NAME="${{ github.repository }}-$(basename ${{ matrix.distro }})"
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          export $(cat .env | xargs) >> $GITHUB_ENV
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image for analysis
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ github.workspace }}
+          file: ${{ matrix.distro }}/Dockerfile
+          push: false
+          load: true
+          tags: $IMAGE_NAME:test
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            PYTHON_VERSION=$PYTHON_VERSION
+            TERRAFORM_VERSION=$TERRAFORM_VERSION
+            OC_VERSION=$OC_VERSION
+            BUILD_DATE=$(TZ=Europe/Madrid date)
+            VERSION="test"
+            GITHUB_SHA=${{ github.sha }}
+            GITHUB_REF=${{ github.ref }}
+            GITHUB_REPOSITORY=${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Dive analysis
+        uses: MaxymVlasov/dive-action@v1.0.1
+        with:
+          image: $IMAGE_NAME:test
+          config-file: ${{ github.workspace }}/.dive-ci.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  summary:
+    needs: optimize
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check optimization status
+        run: |
+          if [ "${{ needs.optimize.result }}" = "success" ]; then
+            echo "✅ All distribution optimizations passed successfully"
+            exit 0
+          elif [ "${{ needs.optimize.result }}" = "skipped" ]; then
+            echo "⚠️ No distribution optimizations were run"
+            exit 0
+          else
+            echo "❌ Some distribution optimizations failed"
+            exit 1
+          fi
