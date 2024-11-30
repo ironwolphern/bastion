@@ -36,7 +36,7 @@ jobs:
 
   validate:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.distributions != '[]' && needs.detect-changes.outputs.distributions != '' }}
+    if: ${{ needs.detect-changes.outputs.distributions != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
