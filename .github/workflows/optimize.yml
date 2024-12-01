@@ -55,10 +55,11 @@ jobs:
       - name: Set arguments for the build
         id: set-args
         run: |
-          IMAGE_NAME="${{ github.repository }}-$(basename ${{ matrix.distro }})"
-          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ github.repository }}-$(basename ${{ matrix.distro }})" >> $GITHUB_ENV
           echo "BUILD_DATE=$(TZ=Europe/Madrid date)" >> $GITHUB_ENV
-          export $(cat .env | xargs) >> $GITHUB_ENV
+          echo "PYTHON_VERSION=$(cat .env | grep PYTHON_VERSION | cut -d'=' -f2)" >> $GITHUB_ENV
+          echo "TERRAFORM_VERSION=$(cat .env | grep TERRAFORM_VERSION | cut -d'=' -f2)" >> $GITHUB_ENV
+          echo "OC_VERSION=$(cat .env | grep OC_VERSION | cut -d'=' -f2)" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -86,6 +87,11 @@ jobs:
             GITHUB_REPOSITORY=${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+        env:
+          BUILD_DATE: ${{ env.BUILD_DATE }}
+          PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
+          TERRAFORM_VERSION: ${{ env.TERRAFORM_VERSION }}
+          OC_VERSION: ${{ env.OC_VERSION }}
 
       - name: Run Dive analysis
         uses: MaxymVlasov/dive-action@v1.0.1
