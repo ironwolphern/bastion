@@ -92,7 +92,7 @@ jobs:
       - name: Run Dive analysis
         uses: MaxymVlasov/dive-action@v1.0.1
         with:
-          image: $IMAGE_NAME:test
+          image: ${{ env.IMAGE_NAME }}:test
           config-file: ${{ github.workspace }}/.dive-ci.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
 

@@ -1,8 +1,7 @@
 # BuildKit Syntax
-# syntax = docker/dockerfile:1.4
+# syntax = docker/dockerfile:1.10
 
 # Global arguments for build time
-ARG PYTHON_VERSION
 ARG TERRAFORM_VERSION
 ARG OC_VERSION
 ARG GITHUB_SHA
@@ -11,9 +10,8 @@ ARG GITHUB_REPOSITORY
 ARG GITHUB_ACTOR
 
 # Official Python base image
-FROM python:${PYTHON_VERSION}-slim
+FROM python:3.12-slim
 
-ARG PYTHON_VERSION
 ARG TERRAFORM_VERSION
 ARG OC_VERSION
 ARG GITHUB_SHA
@@ -75,5 +73,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD terraform version && oc version --client && kubectl version --client && ansible --version || exit 1
 
 # Default command
-ENTRYPOINT ["/home/${USER}/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["/bin/bash"]
