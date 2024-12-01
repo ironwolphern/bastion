@@ -56,7 +56,6 @@ jobs:
         id: set-args
         run: |
           echo "IMAGE_NAME=${{ github.repository }}-$(basename ${{ matrix.distro }})" >> $GITHUB_ENV
-          echo "BUILD_DATE=$(TZ=Europe/Madrid date)" >> $GITHUB_ENV
           echo "PYTHON_VERSION=$(cat .env | grep PYTHON_VERSION | cut -d'=' -f2)" >> $GITHUB_ENV
           echo "TERRAFORM_VERSION=$(cat .env | grep TERRAFORM_VERSION | cut -d'=' -f2)" >> $GITHUB_ENV
           echo "OC_VERSION=$(cat .env | grep OC_VERSION | cut -d'=' -f2)" >> $GITHUB_ENV
@@ -80,7 +79,6 @@ jobs:
             PYTHON_VERSION=${{ env.PYTHON_VERSION }}
             TERRAFORM_VERSION=${{ env.TERRAFORM_VERSION }}
             OC_VERSION=${{ env.OC_VERSION }}
-            BUILD_DATE=${{ env.BUILD_DATE }}
             VERSION="test"
             GITHUB_SHA=${{ github.sha }}
             GITHUB_REF=${{ github.ref }}
@@ -88,7 +86,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
         env:
-          BUILD_DATE: ${{ env.BUILD_DATE }}
           PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
           TERRAFORM_VERSION: ${{ env.TERRAFORM_VERSION }}
           OC_VERSION: ${{ env.OC_VERSION }}
