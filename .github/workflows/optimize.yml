@@ -22,7 +22,7 @@ jobs:
       # Get changed files in the distribution folder
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@main
+        uses: tj-actions/changed-files@v45.0.4
         with:
           files: distribution/*/Dockerfile
 
@@ -56,6 +56,7 @@ jobs:
         run: |
           IMAGE_NAME="${{ github.repository }}-$(basename ${{ matrix.distro }})"
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(TZ=Europe/Madrid date)" >> $GITHUB_ENV
           export $(cat .env | xargs) >> $GITHUB_ENV
 
       - name: Set up QEMU
@@ -77,13 +78,19 @@ jobs:
             PYTHON_VERSION=$PYTHON_VERSION
             TERRAFORM_VERSION=$TERRAFORM_VERSION
             OC_VERSION=$OC_VERSION
-            BUILD_DATE=$(TZ=Europe/Madrid date)
+            BUILD_DATE=$BUILD_DATE
             VERSION="test"
             GITHUB_SHA=${{ github.sha }}
             GITHUB_REF=${{ github.ref }}
             GITHUB_REPOSITORY=${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          PYTHON_VERSION: ${{ env.PYTHON_VERSION }}
+          TERRAFORM_VERSION: ${{ env.TERRAFORM_VERSION }}
+          OC_VERSION: ${{ env.OC_VERSION }}
+          BUILD_DATE: ${{ env.BUILD_DATE }}
 
       - name: Run Dive analysis
         uses: MaxymVlasov/dive-action@v1.0.1
