@@ -39,7 +39,7 @@ ENV TZ=Europe/Madrid
 
 # System dependencies and Python installation
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common=0.* curl=8.* unzip=6.* git=1:2.* openssh-client=1:9.* sshpass=1.* ca-certificates=20240203 vim=2:9.* jq=1.* sudo=1.* \
+    software-properties-common=0.* curl=8.* unzip=6.* git=1:2.* openssh-client=1:9.* sshpass=1.* ca-certificates=20240203 jq=1.* sudo=1.* \
     && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update \
     && apt-get install -y --no-install-recommends python3.12=3.12.* python3-pip=24.* \
@@ -48,7 +48,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Tools installation
 COPY ../../requirements.txt /tmp/
-RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+RUN pip install --no-cache-dir --break-system-packages -r /tmp/requirements.txt \
     && curl -LO "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
     && unzip "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -d /usr/local/bin/ \
     && rm "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \

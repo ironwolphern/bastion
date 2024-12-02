@@ -35,7 +35,7 @@ LABEL org.opencontainers.image.revision="${GITHUB_SHA}" \
 
 # System dependencies installation
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl=7.* unzip=6.* git=1:2.* sshpass=1.* vim=2:9.* jq=1.* sudo=1.* \
+    curl=7.* unzip=6.* git=1:2.* sshpass=1.* jq=1.* sudo=1.* \
     && rm -rf /var/lib/apt/lists/*
 
 # Tools installation

@@ -35,7 +35,7 @@ LABEL org.opencontainers.image.revision="${GITHUB_SHA}" \
 
 # System dependencies installation
 RUN microdnf update -y \
-    && microdnf install -y tar-2:1.* unzip-6.* git-2.* openssh-clients-8.* sshpass-1.* vim-2:8.* jq-1.* sudo-1.* python3.12-3.12.* python3.12-pip-23.* \
+    && microdnf install -y tar-2:1.* unzip-6.* git-2.* openssh-clients-8.* sshpass-1.* jq-1.* sudo-1.* python3.12-3.12.* python3.12-pip-23.* \
     && ln -sf /usr/bin/python3.12 /usr/bin/python3 \
     && ln -sf /usr/bin/python3 /usr/bin/python \
     && ln -sf /usr/bin/pip3.12 /usr/bin/pip3 \
