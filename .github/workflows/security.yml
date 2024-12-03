@@ -89,7 +89,7 @@ jobs:
           OC_VERSION: ${{ env.OC_VERSION }}
 
       - name: Run Dockle security check
-        uses: goodwithtech/dockle-action@0.1.0
+        uses: goodwithtech/dockle-action@v0.1.2
         with:
           image: ${{ env.IMAGE_NAME }}:test
           format: 'list'

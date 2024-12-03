@@ -74,7 +74,7 @@ WORKDIR /home/${USER}
 
 # Verification of tools installed
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD terraform version && oc version --client && kubectl version --client && ansible --version || exit 1
+    CMD terraform version && kubectl version --client && ansible --version || exit 1
 
 # Default command
 ENTRYPOINT ["entrypoint.sh"]
