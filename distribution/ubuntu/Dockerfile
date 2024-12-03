@@ -57,7 +57,7 @@ RUN pip install --no-cache-dir --break-system-packages -r /tmp/requirements.txt 
     && rm openshift-client-linux.tar.gz \
     && rm -Rf /usr/local/bin/README.md \
     && apt-get remove -y --purge unzip \
-    && apt-get autoremove -y && apt-get clean -y
+    && apt-get autoremove -y && apt-get autoclean -y
 
 # Create non-privileged user
 RUN groupadd -g ${UID} ${USER} \
