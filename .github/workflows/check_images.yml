@@ -46,6 +46,8 @@ jobs:
               DISTRIBUTIONS+="$file "
             done
             echo "matrix=$(echo '["'$(echo ${DISTRIBUTIONS[@]} | sed 's/ /","/g')'"]')" >> $GITHUB_OUTPUT
+          else
+            echo "matrix='[""]'" >> $GITHUB_OUTPUT
           fi
 
   validate:
@@ -75,6 +77,24 @@ jobs:
 
       - name: Run Hadolint
         run: hadolint ${{ matrix.distro }}/Dockerfile
+
+  summary:
+    needs: validate
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check validation status
+        run: |
+          if [ "${{ needs.validate.result }}" = "success" ]; then
+            echo "✅ All distribution validations passed successfully"
+            exit 0
+          elif [ "${{ needs.validate.result }}" = "skipped" ]; then
+            echo "⚠️ No distribution validations were run"
+            exit 0
+          else
+            echo "❌ Some distribution validations failed"
+            exit 1
+          fi
 
   build:
     needs: [detect-changes, validate]
@@ -140,19 +160,19 @@ jobs:
           OC_VERSION: ${{ env.OC_VERSION }}
 
   summary:
-    needs: validate
+    needs: build
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Check validation status
+      - name: Check build status
         run: |
-          if [ "${{ needs.validate.result }}" = "success" ]; then
-            echo "✅ All distribution validations passed successfully"
+          if [ "${{ needs.build.result }}" = "success" ]; then
+            echo "✅ All build validations passed successfully"
             exit 0
-          elif [ "${{ needs.validate.result }}" = "skipped" ]; then
-            echo "⚠️ No distribution validations were run"
+          elif [ "${{ needs.build.result }}" = "skipped" ]; then
+            echo "⚠️ No build validations were run"
             exit 0
           else
-            echo "❌ Some distribution validations failed"
+            echo "❌ Some build validations failed"
             exit 1
           fi
