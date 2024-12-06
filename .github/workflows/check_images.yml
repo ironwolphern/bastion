@@ -1,4 +1,4 @@
-name: Docker Images security analysis
+name: Docker Images Validation
 
 on:
   push:
@@ -48,10 +48,41 @@ jobs:
             echo "matrix=$(echo '["'$(echo ${DISTRIBUTIONS[@]} | sed 's/ /","/g')'"]')" >> $GITHUB_OUTPUT
           fi
 
-  security:
+  validate:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.distributions != '[""]' }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro: ${{ fromJson(needs.detect-changes.outputs.distributions) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Get distribution name from the matrix and set it as an environment variable
+      - name: Get distribution name
+        id: distribution
+        run: echo "name=$(basename ${{ matrix.distro }})" >> $GITHUB_OUTPUT
+
+      # Install Hadolint
+      - name: Install Hadolint
+        run: |
+          wget -q https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          sudo mv hadolint-Linux-x86_64 /usr/local/bin/hadolint
+          sudo chmod +x /usr/local/bin/hadolint
+
+      - name: Run Hadolint
+        run: hadolint ${{ matrix.distro }}/Dockerfile
+
+  build:
+    needs: [detect-changes, validate]
+    if: ${{ needs.validate.outputs.result == 'success' }} && ${{ needs.detect-changes.outputs.distributions != '[""]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         distro: ${{ fromJson(needs.detect-changes.outputs.distributions) }}
@@ -79,13 +110,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build image for analysis
         uses: docker/build-push-action@v6
         with:
           context: ${{ github.workspace }}
           file: ${{ matrix.distro }}/Dockerfile
-          push: false
-          load: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ env.IMAGE_NAME }}:test
           build-args: |
             TERRAFORM_VERSION=${{ env.TERRAFORM_VERSION }}
@@ -102,28 +139,20 @@ jobs:
           TERRAFORM_VERSION: ${{ env.TERRAFORM_VERSION }}
           OC_VERSION: ${{ env.OC_VERSION }}
 
-      - name: Run Dockle security check
-        uses: goodwithtech/dockle-action@v0.1.2
-        with:
-          image: ${{ env.IMAGE_NAME }}:test
-          format: 'list'
-          exit-code: '1'
-          exit-level: 'warn'
-
   summary:
-    needs: security
+    needs: validate
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Check security status
+      - name: Check validation status
         run: |
-          if [ "${{ needs.security.result }}" = "success" ]; then
-            echo "✅ All distribution security passed successfully"
+          if [ "${{ needs.validate.result }}" = "success" ]; then
+            echo "✅ All distribution validations passed successfully"
             exit 0
-          elif [ "${{ needs.security.result }}" = "skipped" ]; then
-            echo "⚠️ No distribution security were run"
+          elif [ "${{ needs.validate.result }}" = "skipped" ]; then
+            echo "⚠️ No distribution validations were run"
             exit 0
           else
-            echo "❌ Some distribution security failed"
+            echo "❌ Some distribution validations failed"
             exit 1
           fi
