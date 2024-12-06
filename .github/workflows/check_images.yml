@@ -47,12 +47,12 @@ jobs:
             done
             echo "matrix=$(echo '["'$(echo ${DISTRIBUTIONS[@]} | sed 's/ /","/g')'"]')" >> $GITHUB_OUTPUT
           else
-            echo "matrix='[\"\"]'" >> $GITHUB_OUTPUT
+            echo "matrix=[]" >> $GITHUB_OUTPUT
           fi
 
   validate:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.distributions != '[""]' }}
+    if: ${{ needs.detect-changes.outputs.distributions != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -98,7 +98,7 @@ jobs:
 
   build:
     needs: [detect-changes, validate]
-    if: ${{ needs.validate.outputs.result == 'success' }} && ${{ needs.detect-changes.outputs.distributions != '[""]' }}
+    if: ${{ needs.validate.outputs.result == 'success' }} && ${{ needs.detect-changes.outputs.distributions != '[]' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
