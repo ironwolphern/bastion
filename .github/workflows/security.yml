@@ -21,18 +21,32 @@ jobs:
 
       # Get changed files in the distribution folder
       - name: Get changed files
-        id: changed-files
+        id: changed-files-yaml
         uses: tj-actions/changed-files@v45.0.4
         with:
-          files: distribution/*/Dockerfile
+          files_yaml: |
+            distro:
+              - distribution/*/Dockerfile
+            configs:
+              - .env
+              - requirements.txt
+              - ssh_config
+              - entrypoint.sh
+              - ansible.cfg
 
       # Set distributions as a matrix
       - name: Set distributions
         id: set-distro
         run: |
-          DISTRO=$(echo '["'$(echo ${{ steps.changed-files.outputs.all_changed_files }} | \
-                sed 's/ /","/g')'"]' | sed 's/\/Dockerfile//g')
-          echo "matrix=${DISTRO}" >> $GITHUB_OUTPUT
+          if [ "${{ steps.changed-files-yaml.outputs.distro_any_changed }}" == "true" ]; then
+            echo "matrix=$(echo '["'$(echo ${{ steps.changed-files-yaml.outputs.distro_all_changed_files }} | \
+            sed 's/ /","/g')'"]' | sed 's/\/Dockerfile//g')" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.changed-files-yaml.outputs.configs_any_changed }}" == "true" ]; then
+            for file in $(ls -d ${{ github.workspace }}/distribution/* 2> /dev/null); do
+              DISTRIBUTIONS+="$file "
+            done
+            echo "matrix=$(echo '["'$(echo ${DISTRIBUTIONS[@]} | sed 's/ /","/g')'"]')" >> $GITHUB_OUTPUT
+          fi
 
   security:
     needs: detect-changes
