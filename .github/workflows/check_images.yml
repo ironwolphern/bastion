@@ -47,7 +47,7 @@ jobs:
             done
             echo "matrix=$(echo '["'$(echo ${DISTRIBUTIONS[@]} | sed 's/ /","/g')'"]')" >> $GITHUB_OUTPUT
           else
-            echo "matrix='[""]'" >> $GITHUB_OUTPUT
+            echo "matrix='[\"\"]'" >> $GITHUB_OUTPUT
           fi
 
   validate:
