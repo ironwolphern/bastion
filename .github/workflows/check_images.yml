@@ -213,7 +213,7 @@ jobs:
       - name: Run Dive analysis
         uses: MaxymVlasov/dive-action@v1.0.1
         with:
-          image: "${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
+          image: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
           config-file: ${{ github.workspace }}/.dive-ci.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -259,7 +259,7 @@ jobs:
       - name: Run Dockle security check
         uses: goodwithtech/dockle-action@v0.1.2
         with:
-          image: "${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
+          image: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
           format: 'list'
           exit-code: '1'
           exit-level: 'warn'

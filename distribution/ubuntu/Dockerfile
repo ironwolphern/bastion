@@ -1,5 +1,5 @@
 # BuildKit Syntax
-# syntax = docker/dockerfile:1.10
+# syntax = docker/dockerfile:1.11
 
 # Global arguments for build time
 ARG TERRAFORM_VERSION
