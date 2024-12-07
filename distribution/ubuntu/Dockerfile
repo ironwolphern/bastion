@@ -54,7 +54,7 @@ RUN groupadd -g ${UID} ${USER} \
 # Copy configuration files
 COPY --chown=${USER}:${USER} ../../ansible.cfg /home/${USER}/.ansible/ansible.cfg
 COPY --chown=${USER}:${USER} ../../ssh_config /home/${USER}/.ssh/config
-COPY --chown=${USER}:${USER} --chmod=755 ../../entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chmod=755 ../../entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # Switch to non-privileged user
 USER ${USER}
