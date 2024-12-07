@@ -28,7 +28,9 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt \
     && rm "terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
     && curl -LO "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OC_VERSION}/openshift-client-linux.tar.gz" \
     && tar xzf openshift-client-linux.tar.gz -C /usr/local/bin \
-    && rm openshift-client-linux.tar.gz \
+    && rm -Rf openshift-client-linux.tar.gz \
+    && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+    && mv kubectl /usr/local/bin/kubectl \
     && rm -Rf /usr/local/bin/README.md \
     && apt-get remove -y --purge unzip \
     && apt-get autoremove -y && apt-get autoclean -y
