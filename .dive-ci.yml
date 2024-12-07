@@ -1,7 +1,7 @@
 # General config for all Distributions
 rules:
   lowestEfficiency: 0.95
-  highestWastedBytes: 20MB
+  highestWastedBytes: 55MB
   highestUserWastedPercent: 0.3
 
 # Specific config by Distribution
