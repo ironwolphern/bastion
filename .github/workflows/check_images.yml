@@ -45,7 +45,7 @@ jobs:
             echo "matrix=$(echo '["'$(echo ${{ steps.changed-files-yaml.outputs.distro_all_changed_files }} | \
             sed 's/ /","/g')'"]' | sed 's/\/Dockerfile//g')" >> $GITHUB_OUTPUT
           elif [ "${{ steps.changed-files-yaml.outputs.configs_any_changed }}" == "true" ]; then
-            for file in $(ls -d ${{ github.workspace }}/distribution/* 2> /dev/null); do
+            for file in $(ls -d distribution/* 2> /dev/null); do
               DISTRIBUTIONS+="$file "
             done
             echo "matrix=$(echo '["'$(echo ${DISTRIBUTIONS[@]} | sed 's/ /","/g')'"]')" >> $GITHUB_OUTPUT
@@ -146,10 +146,9 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: |
-            org.opencontainers.image.title=${{ env.IMAGE_NAME }}
+            org.opencontainers.image.title=${{ env.IMAGE_NAME }}-test
             org.opencontainers.image.authors=${{ github.actor }}
             org.opencontainers.image.description="DevOps Tools Container"
-            org.opencontainers.image.source="https://github.com/${{ github.repository }}"
             org.opencontainers.image.licenses=MIT
           tags: |
             type=ref,event=branch
@@ -165,9 +164,6 @@ jobs:
           build-args: |
             TERRAFORM_VERSION=${{ env.TERRAFORM_VERSION }}
             OC_VERSION=${{ env.OC_VERSION }}
-            GITHUB_TITLE=${{ env.IMAGE_NAME }}
-            GITHUB_REPOSITORY="https://github.com/${{ github.repository }}"
-            GITHUB_ACTOR=${{ github.actor }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

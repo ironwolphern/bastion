@@ -4,27 +4,16 @@
 # Global arguments for build time
 ARG TERRAFORM_VERSION
 ARG OC_VERSION
-ARG GITHUB_REPOSITORY
-ARG GITHUB_ACTOR
 
 # Use Red Hat UBI9 minimal as base
 FROM registry.access.redhat.com/ubi9-minimal:9.5
 
 ARG TERRAFORM_VERSION
 ARG OC_VERSION
-ARG GITHUB_REPOSITORY
-ARG GITHUB_ACTOR
 
 # Set arguments for non-privileged user
 ARG UID=10001
 ARG USER=devops
-
-# Labels following OCI
-LABEL org.opencontainers.image.title="${GITHUB_TITLE}" \
-      org.opencontainers.image.authors="${GITHUB_ACTOR}" \
-      org.opencontainers.image.description="DevOps Tools Container" \
-      org.opencontainers.image.source="${GITHUB_REPOSITORY}" \
-      org.opencontainers.image.licenses="MIT"
 
 # System dependencies installation
 RUN microdnf update -y \
