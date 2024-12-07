@@ -4,8 +4,6 @@
 # Global arguments for build time
 ARG TERRAFORM_VERSION
 ARG OC_VERSION
-ARG GITHUB_SHA
-ARG GITHUB_REF
 ARG GITHUB_REPOSITORY
 ARG GITHUB_ACTOR
 
@@ -14,8 +12,6 @@ FROM registry.access.redhat.com/ubi9-minimal:9.5
 
 ARG TERRAFORM_VERSION
 ARG OC_VERSION
-ARG GITHUB_SHA
-ARG GITHUB_REF
 ARG GITHUB_REPOSITORY
 ARG GITHUB_ACTOR
 
@@ -24,14 +20,11 @@ ARG UID=10001
 ARG USER=devops
 
 # Labels following OCI
-LABEL org.opencontainers.image.revision="${GITHUB_SHA}" \
-      org.opencontainers.image.version="${GITHUB_REF}" \
+LABEL org.opencontainers.image.title="${GITHUB_TITLE}" \
       org.opencontainers.image.authors="${GITHUB_ACTOR}" \
       org.opencontainers.image.description="DevOps Tools Container" \
       org.opencontainers.image.source="${GITHUB_REPOSITORY}" \
-      org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.ref.name="${GITHUB_REF}" \
-      org.opencontainers.image.vendor="GitHub"
+      org.opencontainers.image.licenses="MIT"
 
 # System dependencies installation
 RUN microdnf update -y \
@@ -74,7 +67,7 @@ WORKDIR /home/${USER}
 
 # Verification of tools installed
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD terraform version && kubectl version --client && ansible --version || exit 1
+    CMD terraform version && oc version --client && kubectl version --client && ansible --version || exit 1
 
 # Default command
 ENTRYPOINT ["entrypoint.sh"]
