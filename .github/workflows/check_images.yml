@@ -151,6 +151,8 @@ jobs:
             org.opencontainers.image.description="DevOps Tools Container"
             org.opencontainers.image.source="https://github.com/${{ github.repository }}"
             org.opencontainers.image.licenses=MIT
+          tags: |
+            type=ref,event=branch
 
       - name: Build image for analysis
         uses: docker/build-push-action@v6.10.0
@@ -158,7 +160,7 @@ jobs:
           context: ${{ github.workspace }}
           file: ${{ matrix.distro }}/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ env.IMAGE_NAME }}:test
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             TERRAFORM_VERSION=${{ env.TERRAFORM_VERSION }}

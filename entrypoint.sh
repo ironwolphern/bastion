@@ -1,17 +1,17 @@
 #!/bin/bash
 # Function to verify whether configuration directories exist
 check_config_dirs() {
-    # Kubernetes config
+    # Kubernetes config directory
     if [ -d "/config/.kube" ]; then
         cp -r /config/.kube/* ~/.kube/
     fi
 
-    # Terraform config
+    # Terraform config directory
     if [ -d "/config/.terraform.d" ]; then
         cp -r /config/.terraform.d/* ~/.terraform.d/
     fi
 
-    # Ansible config
+    # Ansible config directory
     if [ -d "/config/.ansible" ]; then
         cp -r /config/.ansible/* ~/.ansible/
     fi
