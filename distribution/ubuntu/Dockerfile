@@ -54,7 +54,7 @@ RUN groupadd -g ${UID} ${USER} \
 # Copy configuration files
 COPY --chown=${USER}:${USER} ../../ansible.cfg /home/${USER}/.ansible/ansible.cfg
 COPY --chown=${USER}:${USER} ../../ssh_config /home/${USER}/.ssh/config
-COPY --chown=${USER}:${USER} --chmod=755 ../../entrypoint.sh /home/${USER}/entrypoint.sh
+COPY --chown=${USER}:${USER} --chmod=755 ../../entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # Switch to non-privileged user
 USER ${USER}
@@ -65,5 +65,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD terraform version && oc version --client && kubectl version --client && ansible --version || exit 1
 
 # Default command
-ENTRYPOINT ["/home/${USER}/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
 CMD ["/bin/bash"]
