@@ -115,11 +115,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4.2.2
 
-      # Get distribution name from the matrix and set it as an environment variable
-      - name: Get distribution name
-        id: distribution
-        run: echo "name=$(basename ${{ matrix.distro }})" >> $GITHUB_OUTPUT
-
       - name: Set arguments for the build
         id: set-args
         run: |
@@ -146,10 +141,19 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: |
+            org.opencontainers.image.name=${{ env.IMAGE_NAME }}-test
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}-test
             org.opencontainers.image.authors=${{ github.actor }}
+            org.opencontainers.image.url="https://github.com/${{ github.repository }}"
+            org.opencontainers.image.documentation="https://github.com/${{ github.repository }}"
+            org.opencontainers.image.source="https://github.com/${{ github.repository }}"
             org.opencontainers.image.description="DevOps Tools Container"
             org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.version=${{ github.ref_name}}
+            org.opencontainers.image.created=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.vendor=${{ github.actor }}
+            org.opencontainers.image.ref.name=${{ github.ref }}
           tags: |
             type=ref,event=branch
 
@@ -182,5 +186,98 @@ jobs:
             exit 0
           else
             echo "❌ Some build validations failed"
+            exit 1
+          fi
+
+  optimize:
+    needs: [build, detect-changes]
+    if: ${{ needs.build.result == 'success' }} && ${{ needs.detect-changes.outputs.distributions != '[]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      matrix:
+        distro: ${{ fromJson(needs.detect-changes.outputs.distributions) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set arguments for the image
+        id: set-args
+        run: |
+          echo "IMAGE_NAME=${{ github.repository }}-$(basename ${{ matrix.distro }})" >> $GITHUB_ENV
+
+      - name: Run Dive analysis
+        uses: MaxymVlasov/dive-action@v1.0.1
+        with:
+          image: "${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
+          config-file: ${{ github.workspace }}/.dive-ci.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  summary_optimize:
+    needs: optimize
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check optimize status
+        run: |
+          if [ "${{ needs.optimize.result }}" = "success" ]; then
+            echo "✅ All optimize validations passed successfully"
+            exit 0
+          elif [ "${{ needs.optimize.result }}" = "skipped" ]; then
+            echo "⚠️ No optimize validations were run"
+            exit 0
+          else
+            echo "❌ Some optimize validations failed"
+            exit 1
+          fi
+
+  security:
+    needs: [build, detect-changes]
+    if: ${{ needs.build.result == 'success' }} && ${{ needs.detect-changes.outputs.distributions != '[]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      matrix:
+        distro: ${{ fromJson(needs.detect-changes.outputs.distributions) }}
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Set arguments for the image
+        id: set-args
+        run: |
+          echo "IMAGE_NAME=${{ github.repository }}-$(basename ${{ matrix.distro }})" >> $GITHUB_ENV
+
+      - name: Run Dockle security check
+        uses: goodwithtech/dockle-action@v0.1.2
+        with:
+          image: "${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
+          format: 'list'
+          exit-code: '1'
+          exit-level: 'warn'
+
+  summary_security:
+    needs: security
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check security status
+        run: |
+          if [ "${{ needs.security.result }}" = "success" ]; then
+            echo "✅ All security validations passed successfully"
+            exit 0
+          elif [ "${{ needs.security.result }}" = "skipped" ]; then
+            echo "⚠️ No security validations were run"
+            exit 0
+          else
+            echo "❌ Some security validations failed"
             exit 1
           fi
