@@ -9,6 +9,8 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
+  # Set the default distribution
+  DISTRO: python
   # Versions tools
   TERRAFORM_VERSION: 1.0.0
   OC_VERSION: 4.8.0
@@ -123,6 +125,7 @@ jobs:
         id: set-args
         run: |
           echo "IMAGE_NAME=${{ github.repository }}-$(basename ${{ matrix.distro }})" >> $GITHUB_ENV
+          echo "DISTRO=$(basename ${{ matrix.distro }})" >> $GITHUB_ENV
 
       - name: Create scan directory
         run: mkdir -p scan-results
@@ -133,7 +136,7 @@ jobs:
           scan-type: "image"
           image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
           format: "sarif"
-          output: "scan-results/trivy-results-$(basename ${{ matrix.distro }}).sarif"
+          output: "scan-results/trivy-results-${{ env.DISTRO }}.sarif"
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
@@ -141,4 +144,4 @@ jobs:
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v3.27.6
         with:
-          sarif_file: "scan-results/trivy-results-$(basename ${{ matrix.distro }}).sarif"
+          sarif_file: "scan-results/trivy-results-${{ env.DISTRO }}.sarif"
