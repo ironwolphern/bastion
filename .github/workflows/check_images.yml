@@ -156,6 +156,7 @@ jobs:
             org.opencontainers.image.ref.name=${{ github.ref }}
           tags: |
             type=ref,event=branch
+            type=sha,format=long
 
       - name: Build image for analysis
         uses: docker/build-push-action@v6.10.0
