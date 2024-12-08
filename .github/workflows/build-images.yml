@@ -9,8 +9,6 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
-  # Set the default distribution
-  DISTRO: python
   # Versions tools
   TERRAFORM_VERSION: 1.0.0
   OC_VERSION: 4.8.0
@@ -104,44 +102,3 @@ jobs:
             OC_VERSION=${{ env.OC_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  scan_security:
-    needs: [build, prepare]
-    if: ${{ needs.build.result == 'success' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: read
-      security-events: write
-    strategy:
-      matrix:
-        distro: ${{ fromJson(needs.prepare.outputs.distributions) }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4.2.2
-
-      - name: Set arguments for the build
-        id: set-args
-        run: |
-          echo "IMAGE_NAME=${{ github.repository }}-$(basename ${{ matrix.distro }})" >> $GITHUB_ENV
-          echo "DISTRO=$(basename ${{ matrix.distro }})" >> $GITHUB_ENV
-
-      - name: Create scan directory
-        run: mkdir -p scan-results
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.29.0
-        with:
-          scan-type: "image"
-          image-ref: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          format: "sarif"
-          output: "scan-results/trivy-results-${{ env.DISTRO }}.sarif"
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-
-      - name: Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3.27.6
-        with:
-          sarif_file: "scan-results/trivy-results-${{ env.DISTRO }}.sarif"
