@@ -22,9 +22,6 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   # Set the default distribution
   DISTRO: python
-  # Versions tools
-  TERRAFORM_VERSION: 1.0.0
-  OC_VERSION: 4.8.0
 
 jobs:
   prepare:
