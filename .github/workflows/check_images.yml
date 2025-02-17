@@ -212,7 +212,7 @@ jobs:
           echo "IMAGE_NAME=${{ github.repository }}-$(basename ${{ matrix.distro }})" >> $GITHUB_ENV
 
       - name: Run Dive analysis
-        uses: MaxymVlasov/dive-action@v1.2.1
+        uses: MaxymVlasov/dive-action@v1.3.0
         with:
           image: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}"
           config-file: ${{ github.workspace }}/.dive-ci.yml
