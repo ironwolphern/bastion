@@ -90,7 +90,7 @@ jobs:
             type=sha,format=long
 
       - name: Build image for analysis
-        uses: docker/build-push-action@v6.13.0
+        uses: docker/build-push-action@v6.14.0
         with:
           context: ${{ github.workspace }}
           file: ${{ matrix.distro }}/Dockerfile
