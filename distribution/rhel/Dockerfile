@@ -6,7 +6,7 @@ ARG TERRAFORM_VERSION
 ARG OC_VERSION
 
 # Use Red Hat UBI9 minimal as base
-FROM registry.access.redhat.com/ubi9-minimal:9.5
+FROM registry.access.redhat.com/ubi9-minimal:9.6
 
 ARG TERRAFORM_VERSION
 ARG OC_VERSION
