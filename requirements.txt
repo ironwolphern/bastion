@@ -1,5 +1,5 @@
-ansible==12.1.0
 ansible-lint==25.11.0
+ansible==12.2.0
 cffi>=1.17.0
 netaddr>=0.8.0
 hvac>=2.3.0
