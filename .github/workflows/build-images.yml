@@ -20,7 +20,7 @@ jobs:
       distributions: ${{ steps.set-distro.outputs.distributions }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
 
       - name: Set distributions
         id: set-distro
@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
 
       - name: Set arguments for the build
         id: set-args
