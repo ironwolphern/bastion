@@ -4,4 +4,4 @@ ansible==13.4.0
 cffi>=1.17.0
 netaddr>=0.8.0
 hvac>=2.3.0
-proxmoxer>=2.1.0
+proxmoxer>=2.3.0
