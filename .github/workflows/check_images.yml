@@ -20,12 +20,12 @@ jobs:
       distributions: ${{ steps.set-distro.outputs.matrix }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
 
       # Get changed files in the distribution folder
       - name: Get changed files
         id: changed-files-yaml
-        uses: tj-actions/changed-files@v47.0.2
+        uses: tj-actions/changed-files@v47.0.6
         with:
           files_yaml: |
             distro:
@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
 
       # Get distribution name from the matrix and set it as an environment variable
       - name: Get distribution name
@@ -113,7 +113,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
 
       - name: Set arguments for the build
         id: set-args
@@ -137,7 +137,7 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5.10.0
+        uses: docker/metadata-action@v6.2.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           labels: |
@@ -159,7 +159,7 @@ jobs:
             type=sha,format=long
 
       - name: Build image for analysis
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v7.3.0
         with:
           context: ${{ github.workspace }}
           file: ${{ matrix.distro }}/Dockerfile
@@ -204,7 +204,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
 
       - name: Set arguments for the image
         id: set-args
@@ -250,7 +250,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.1
 
       - name: Set arguments for the image
         id: set-args
